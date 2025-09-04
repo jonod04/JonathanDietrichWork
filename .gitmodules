@@ -1,0 +1,3 @@
+[submodule "Stat405/MoviePosterAnalysis"]
+	path = Stat405/MoviePosterAnalysis
+	url = https://github.com/jonod04/MoviePosterAnalysis
