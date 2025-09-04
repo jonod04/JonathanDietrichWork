@@ -1,0 +1,11 @@
+ 1    Four score and seven years ago our fathers brought forth on this
+ 2    continent, a new nation, conceived in Liberty, and dedicated to the
+
+ 4    Now we are engaged in a great civil war, testing whether that nation,
+ 5    or any nation so conceived and so dedicated, can long endure. We are
+ 6    met on a great battle-field of that war. We have come to dedicate a
+      
+14    here, but it can never forget what they did here. It is for us the
+15    living, rather, to be dedicated here to the unfinished work which they
+16    who fought here have thus far so nobly advanced. It is rather for us
+17    to be here dedicated to the great task remaining before us--that from

@@ -1,0 +1,63 @@
+---
+title: "HW2"
+output: html_document
+date: "2/13/25"
+email: "jrdietrich2@wisc.edu"
+---
+
+
+## Introduction  
+In this project, I used the mean absolute flux difference to compare the SDSS spectra for the Lyman-break galaxy cB58. By shifting each candidate spectrum between -100 and 100 indices, I identified the closest matches while accounting for redshift effects. Each spectrum was first normalized by subtracting the mean and dividing by the standard deviation. I then found mean absolute flux difference to compare spectra. Then each spectrum was shifted in steps of 1 index from -100 to 100 to find the best alignment. I found some trouble trying to remove NA values from the dataset. I decided on this measure because I think it takes into account the redshifts well.
+
+
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE, message = FALSE)
+library(FITSio)
+library(ggplot2)
+```
+
+```{r}
+cB58 <- readFrameFromFITS("cB58_Lyman_break.fit")
+cB58_flux_norm <- (cB58$FLUX - mean(cB58$FLUX, na.rm=TRUE)) / sd(cB58$FLUX, na.rm=TRUE)
+```
+```{r}
+results <- read.csv("hw2.csv")
+head(results, 3)
+```
+## Visualization
+```{r}
+knitr::kable(head(results, 3))
+
+plot_spectrum <- function(file, shift) {
+  if (!file.exists(file)) {
+    warning(paste("File not found:", file))
+    return(NULL)
+  }
+  
+  spec_data <- readFrameFromFITS(file)
+  spec_flux <- (spec_data$flux - mean(spec_data$flux, na.rm=TRUE)) / sd(spec_data$flux, na.rm=TRUE)
+  
+  if (shift > 0) {
+    spec_flux <- c(rep(NA, shift), spec_flux[1:(length(spec_flux) - shift)])
+  } else if (shift < 0) {
+    spec_flux <- c(spec_flux[(abs(shift) + 1):length(spec_flux)], rep(NA, abs(shift)))
+  }
+  
+  df <- data.frame(Index = 1:length(spec_flux), Flux = spec_flux, Type = "Candidate")
+  df_cb58 <- data.frame(Index = 1:length(cB58_flux_norm), Flux = cB58_flux_norm, Type = "cB58")
+  df_all <- rbind(df, df_cb58)
+  
+  ggplot(df_all, aes(x=Index, y=Flux, color=Type)) +
+    geom_line() +
+    ggtitle(paste("Comparison with", file, "Shift =", shift))
+}
+```
+
+```{r}
+top_matches <- results[1:3, ]
+for (x in 1:3) {
+  plot_spectrum(top_matches$spectrumID[x], top_matches$i[x])
+  }
+```

@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>HW2</title>
+<style type="text/css">
+/**
+ * Prism.s theme ported from highlight.js's xcode style
+ */
+pre code {
+  padding: 1em;
+}
+.token.comment {
+  color: #007400;
+}
+.token.punctuation {
+  color: #999;
+}
+.token.tag,
+.token.selector {
+  color: #aa0d91;
+}
+.token.boolean,
+.token.number,
+.token.constant,
+.token.symbol {
+  color: #1c00cf;
+}
+.token.property,
+.token.attr-name,
+.token.string,
+.token.char,
+.token.builtin {
+  color: #c41a16;
+}
+.token.inserted {
+  background-color: #ccffd8;
+}
+.token.deleted {
+  background-color: #ffebe9;
+}
+.token.operator,
+.token.entity,
+.token.url,
+.language-css .token.string,
+.style .token.string {
+  color: #9a6e3a;
+}
+.token.atrule,
+.token.attr-value,
+.token.keyword {
+  color: #836c28;
+}
+.token.function,
+.token.class-name {
+  color: #DD4A68;
+}
+.token.regex,
+.token.important,
+.token.variable {
+  color: #5c2699;
+}
+.token.important,
+.token.bold {
+  font-weight: bold;
+}
+.token.italic {
+  font-style: italic;
+}
+</style>
+<style type="text/css">
+body {
+  font-family: sans-serif;
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+body, .footnotes, code { font-size: .9em; }
+li li { font-size: .95em; }
+*, *:before, *:after {
+  box-sizing: inherit;
+}
+pre, img { max-width: 100%; }
+pre, pre:hover {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+pre code {
+  display: block;
+  overflow-x: auto;
+}
+code { font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace; }
+:not(pre) > code, code[class] { background-color: #F8F8F8; }
+code.language-undefined, pre > code:not([class]) {
+  background-color: inherit;
+  border: 1px solid #eee;
+}
+table {
+  margin: auto;
+  border-top: 1px solid #666;
+}
+table thead th { border-bottom: 1px solid #ddd; }
+th, td { padding: 5px; }
+thead, tfoot, tr:nth-child(even) { background: #eee; }
+blockquote {
+  color: #666;
+  margin: 0;
+  padding-left: 1em;
+  border-left: 0.5em solid #eee;
+}
+hr, .footnotes::before { border: 1px dashed #ddd; }
+.frontmatter { text-align: center; }
+#TOC .numbered li { list-style: none; }
+#TOC .numbered { padding-left: 0; }
+#TOC .numbered ul { padding-left: 1em; }
+table, .body h2 { border-bottom: 1px solid #666; }
+.body .appendix, .appendix ~ h2 { border-bottom-style: dashed; }
+.footnote-ref a::before { content: "["; }
+.footnote-ref a::after { content: "]"; }
+section.footnotes::before {
+  content: "";
+  display: block;
+  max-width: 20em;
+}
+
+@media print {
+  body {
+    font-size: 12pt;
+    max-width: 100%;
+  }
+  tr, img { page-break-inside: avoid; }
+}
+@media only screen and (min-width: 992px) {
+  pre { white-space: pre; }
+}
+</style>
+</head>
+<body>
+<div class="frontmatter">
+<div class="title"><h1>HW2</h1></div>
+<div class="author"><h2></h2></div>
+<div class="date"><h3>2/13/25</h3></div>
+</div>
+<div class="body">
+<h2 id="introduction">Introduction</h2>
+<p>In this project, I used the mean absolute flux difference to compare the SDSS spectra for the Lyman-break galaxy cB58. By shifting each candidate spectrum between -100 and 100 indices, I identified the closest matches while accounting for redshift effects. Each spectrum was first normalized by subtracting the mean and dividing by the standard deviation. I then found mean absolute flux difference to compare spectra. Then each spectrum was shifted in steps of 1 index from -100 to 100 to find the best alignment. I found some trouble trying to remove NA values from the dataset. I decided on this measure because I think it takes into account the redshifts well.</p>
+<hr />
+<pre><code class="language-r">cB58 &lt;- readFrameFromFITS(&quot;cB58_Lyman_break.fit&quot;)
+cB58_flux_norm &lt;- (cB58$FLUX - mean(cB58$FLUX, na.rm=TRUE)) / sd(cB58$FLUX, na.rm=TRUE)
+</code></pre>
+<pre><code class="language-r">results &lt;- read.csv(&quot;hw2.csv&quot;)
+head(results, 3)
+</code></pre>
+<pre><code>##                        spectrumID  distance   i
+## 1 data//spec-2124-53770-0113.fits 0.6557005 -13
+## 2 data//spec-0390-51900-0010.fits 0.7437379 -98
+## 3 data//spec-2356-53786-0499.fits 0.7481970 -93
+</code></pre>
+<h2 id="visualization">Visualization</h2>
+<pre><code class="language-r">knitr::kable(head(results, 3))
+</code></pre>
+<table>
+<thead>
+<tr>
+<th align="left">spectrumID</th>
+<th align="right">distance</th>
+<th align="right">i</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td align="left">data//spec-2124-53770-0113.fits</td>
+<td align="right">0.6557005</td>
+<td align="right">-13</td>
+</tr>
+<tr>
+<td align="left">data//spec-0390-51900-0010.fits</td>
+<td align="right">0.7437379</td>
+<td align="right">-98</td>
+</tr>
+<tr>
+<td align="left">data//spec-2356-53786-0499.fits</td>
+<td align="right">0.7481970</td>
+<td align="right">-93</td>
+</tr>
+</tbody>
+</table>
+<pre><code class="language-r">plot_spectrum &lt;- function(file, shift) {
+  if (!file.exists(file)) {
+    warning(paste(&quot;File not found:&quot;, file))
+    return(NULL)
+  }
+  
+  spec_data &lt;- readFrameFromFITS(file)
+  spec_flux &lt;- (spec_data$flux - mean(spec_data$flux, na.rm=TRUE)) / sd(spec_data$flux, na.rm=TRUE)
+  
+  if (shift &gt; 0) {
+    spec_flux &lt;- c(rep(NA, shift), spec_flux[1:(length(spec_flux) - shift)])
+  } else if (shift &lt; 0) {
+    spec_flux &lt;- c(spec_flux[(abs(shift) + 1):length(spec_flux)], rep(NA, abs(shift)))
+  }
+  
+  df &lt;- data.frame(Index = 1:length(spec_flux), Flux = spec_flux, Type = &quot;Candidate&quot;)
+  df_cb58 &lt;- data.frame(Index = 1:length(cB58_flux_norm), Flux = cB58_flux_norm, Type = &quot;cB58&quot;)
+  df_all &lt;- rbind(df, df_cb58)
+  
+  ggplot(df_all, aes(x=Index, y=Flux, color=Type)) +
+    geom_line() +
+    ggtitle(paste(&quot;Comparison with&quot;, file, &quot;Shift =&quot;, shift))
+}
+</code></pre>
+<pre><code class="language-r">top_matches &lt;- results[1:3, ]
+for (x in 1:3) {
+  plot_spectrum(top_matches$spectrumID[x], top_matches$i[x])
+  }
+</code></pre>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+# Name: Jonathan Dietrich
+# Email: jrdietrich2@wisc.edu
+
+rm(list=ls())
+
+library(FITSio)
+library(ggplot2)
+
+normalize_flux = function(flux) {
+  if (!is.numeric(flux) || all(is.na(flux))) {
+    stop("Error: Flux values are not numeric or contain only NAs.")
+  }
+  return((flux - mean(flux, na.rm=TRUE)) / sd(flux, na.rm=TRUE))
+}
+
+cB58 = readFrameFromFITS("cB58_Lyman_break.fit")
+cB58_flux_norm = normalize_flux(cB58$FLUX)
+
+spec_files = list.files("data/", pattern="*.fits", full.names=TRUE)
+results = data.frame(Spectrum=character(), Distance=numeric(), Shift=integer(), stringsAsFactors=FALSE)
+
+for (file in spec_files) {
+  print(paste("Processing:", file))  
+  spec_data = readFrameFromFITS(file)
+  spec_flux = spec_data$flux  
+
+  if (!is.numeric(spec_flux) || all(is.na(spec_flux))) {
+    print("Skipping due to invalid flux values.")  
+    next
+  }
+
+  spec_flux_norm = normalize_flux(spec_flux)
+  min_length = min(length(cB58_flux_norm), length(spec_flux_norm))
+
+  cB58_flux_trimmed = cB58_flux_norm[1:min_length]
+  spec_flux_trimmed = spec_flux_norm[1:min_length]
+
+  best_distance = Inf
+  best_shift = 0
+
+  for (shift in -100:100) {
+    shifted_flux = spec_flux_trimmed
+    if (shift > 0) {
+      shifted_flux = c(rep(NA, shift), spec_flux_trimmed[1:(min_length - shift)])
+    } else if (shift < 0) {
+      shifted_flux = c(spec_flux_trimmed[(abs(shift) + 1):min_length], rep(NA, abs(shift)))
+    }
+
+    distance = mean(abs(cB58_flux_trimmed - shifted_flux), na.rm=TRUE)
+
+    if (!is.na(distance) && distance < best_distance) {
+      best_distance = distance
+      best_shift = shift
+    }
+  }
+
+  print(paste("Best match for", file, "Distance:", best_distance, "Shift:", best_shift))  
+
+  results = rbind(results, data.frame(spectrumID=file, distance=best_distance, i=best_shift, stringsAsFactors=FALSE))
+}
+
+results = results[order(results$distance), ]
+write.csv(results, "hw2.csv", row.names=FALSE)
